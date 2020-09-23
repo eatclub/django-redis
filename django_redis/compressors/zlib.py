@@ -1,11 +1,7 @@
-# -*- coding: utf-8 -*-
-
-from __future__ import absolute_import
-
 import zlib
 
-from .base import BaseCompressor
 from ..exceptions import CompressorError
+from .base import BaseCompressor
 
 
 class ZlibCompressor(BaseCompressor):

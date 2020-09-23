@@ -1,18 +1,6 @@
-# -*- coding: utf-8 -*-
-
-from __future__ import absolute_import, unicode_literals
-
-# Import the fastest implementation of
-# pickle package. This should be removed
-# when python3 come the unique supported
-# python version
-try:
-    import cPickle as pickle
-except ImportError:
-    import pickle
+import pickle
 
 from django.core.exceptions import ImproperlyConfigured
-from django.utils.encoding import force_bytes
 
 from .base import BaseSerializer
 
@@ -33,4 +21,4 @@ class PickleSerializer(BaseSerializer):
         return pickle.dumps(value, self._pickle_version)
 
     def loads(self, value):
-        return pickle.loads(force_bytes(value))
+        return pickle.loads(value)

@@ -6,7 +6,7 @@ CACHES = {
         "LOCATION": ["redis://127.0.0.1:6379?db=1", "redis://127.0.0.1:6379?db=1"],
         "OPTIONS": {
             "CLIENT_CLASS": "django_redis.client.DefaultClient",
-            "SERIALIZER": "django_redis.serializers.msgpack.MSGPackSerializer",
+            "COMPRESSOR": "django_redis.compressors.lz4.Lz4Compressor",
         },
     },
     "doesnotexist": {
@@ -14,15 +14,15 @@ CACHES = {
         "LOCATION": "redis://127.0.0.1:56379?db=1",
         "OPTIONS": {
             "CLIENT_CLASS": "django_redis.client.DefaultClient",
-            "SERIALIZER": "django_redis.serializers.msgpack.MSGPackSerializer",
+            "COMPRESSOR": "django_redis.compressors.lz4.Lz4Compressor",
         },
     },
     "sample": {
         "BACKEND": "django_redis.cache.RedisCache",
-        "LOCATION": "redis://127.0.0.1:6379?db=1,redis://127.0.0.1:6379?db=1",
+        "LOCATION": "127.0.0.1:6379?db=1,127.0.0.1:6379?db=1",
         "OPTIONS": {
             "CLIENT_CLASS": "django_redis.client.DefaultClient",
-            "SERIALIZER": "django_redis.serializers.msgpack.MSGPackSerializer",
+            "COMPRESSOR": "django_redis.compressors.lz4.Lz4Compressor",
         },
     },
     "with_prefix": {
@@ -30,7 +30,7 @@ CACHES = {
         "LOCATION": "redis://127.0.0.1:6379?db=1",
         "OPTIONS": {
             "CLIENT_CLASS": "django_redis.client.DefaultClient",
-            "SERIALIZER": "django_redis.serializers.msgpack.MSGPackSerializer",
+            "COMPRESSOR": "django_redis.compressors.lz4.Lz4Compressor",
         },
         "KEY_PREFIX": "test-prefix",
     },

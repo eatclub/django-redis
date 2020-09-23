@@ -1,6 +1,85 @@
 Changelog
 =========
 
+Version 4.12.1
+--------------
+
+Date: 2020-05-27
+
+- No code changes.
+- Fixed a typo in setup.cfg metadata preventing a successful release.
+
+Version 4.12.0
+--------------
+
+Date: 2020-05-27
+
+- The project has moved to `Jazzband <https://jazzband.co/>`_. This is the
+  first release under the new organization. The new repository URL is
+  `<https://github.com/jazzband/django-redis>`_.
+- Removed support for end-of-life Django < 2.2.
+- Removed support for unmaintained redis-py 2.X.
+- Changed uses of deprecated ``smart_text()`` to ``smart_str()``.
+- Fixed deprecation warning with the msgpack serializer.
+- The ``.touch()`` method now uses the default timeout, to cache forever pass
+  ``None``.
+- Subclasses of ``JSONSerializer`` can now override the ``encoder_class``
+  attribute to change the JSON encoder. It defaults to ``DjangoJSONEncoder``.
+- Fixed ``DefaultClient.set()`` to work with empty ``Pipeline``.
+- The ``thread_local`` parameter is now forwarded to the Redis client.
+
+Version 4.11.0
+--------------
+
+Date: 2019-12-13
+
+- Removed support for Python 2.7 and 3.4.
+- Removed support for Django 2.0 and 2.1.
+- Added support for Python 3.8.
+- Added support for Django 2.2 and 3.0.
+- Changed msgpack-python soft dependency to msgpack.
+- Fixed ``.touch()`` method for sharded client.
+- Fixed prefix escaping for the sharded client.
+- Fixed ``.add()`` method to return a bool.
+
+Version 4.10.0
+--------------
+
+Date: 2018-10-19
+
+- Add support and testing for Django 2.1 and Python 3.7. No actual code changes
+  were required.
+- Add support for redis-py 3.0.
+- Add touch command.
+
+
+Version 4.9.1
+-------------
+
+Date: 2018-10-19
+
+- Pin redis version to 2.10.6
+
+
+Version 4.9.0
+-------------
+
+Date: 2018-03-01
+
+- Add testing and support for Django 2.0. No actual code changes were required.
+- Escape ``KEY_PREFIX`` and ``VERSION`` when used in glob expressions.
+- Improve handling timeouts less than 1ms.
+- Remove fakeredis support.
+- Add datetime, date, time, and timedelta serialization support to the JSON
+  serializer.
+- The deprecated feature of passing ``True`` as a timeout value is no longer
+  supported.
+- Fix ``add()`` with a negative timeout to not store key (it is immediately
+  invalid).
+- Remove support for Django < 1.11.
+- Add support for atomic incr if key is not set.
+
+
 Version 4.8.0
 -------------
 
@@ -11,7 +90,7 @@ Date: 2017-04-25
 - Remove many workarounds related to old and not supported versions
   of django and redis-py.
 - Code cleaning and flake8 compliance fixes.
-- Add better impl for `close` method.
+- Add better impl for ``close`` method.
 - Fix compatibility warnings with python 3.6
 
 
@@ -21,7 +100,7 @@ Version 4.7.0
 Date: 2017-01-02
 
 - Add the ability to enable write to slave when master is not available.
-- Add `itersize` parameter to `delete_pattern`.
+- Add ``itersize`` parameter to ``delete_pattern``.
 
 
 Version 4.6.0
@@ -29,7 +108,7 @@ Version 4.6.0
 
 Date: 2016-11-02
 
-- Fix incorrect behavior of `clear()` method.
+- Fix incorrect behavior of ``clear()`` method.
 
 
 Version 4.5.0
@@ -39,7 +118,7 @@ Date: 2016-09-21
 
 - Now only support Django 1.8 and above. Support for older versions has been dropped.
 - Remove undocumented and deprecated support for old connection string format.
-- Add support for `PASSWORD` option (usefull when the password contains url unsafe
+- Add support for ``PASSWORD`` option (useful when the password contains url unsafe
   characters).
 - Make the package compatible with fake redis.
 - Fix compatibility issues with latest django version (1.10).
@@ -75,7 +154,7 @@ Version 4.4.1
 
 Date: 2016-04-13
 
-- Add additional check for avoid wrong exception on `get_redis_connection`.
+- Add additional check for avoid wrong exception on ``get_redis_connection``.
 
 
 Version 4.4.0
@@ -105,7 +184,7 @@ Version 4.2.0
 
 Date: 2015-07-03
 
-- Add `persist` and `expire` methods.
+- Add ``persist`` and ``expire`` methods.
 - Remove old and broken dummy client.
 - Expose a redis lock method.
 
@@ -124,7 +203,7 @@ Date: 2015-06-15
 Version 4.0.0
 -------------
 
-- Remove usage of deprecated `get_cache` method.
+- Remove usage of deprecated ``get_cache`` method.
 - Added connection option SOCKET_CONNECT_TIMEOUT. [Jorge C. Leitão].
 - Replace setex and friends with set, because it now supports all need for atomic.
   updates (thanks to @23doors) (re revert changes from 3.8.x branch).
@@ -132,7 +211,7 @@ Version 4.0.0
 - Fix django 1.9 compatibilities.
 - BREAKING CHANGE: Now timeout=0 works as django specified (expires immediately)
 - Now requires redis server >= 2.8
-- BREAKING CHANGE: `redis_cache` is no longer a valid package name
+- BREAKING CHANGE: ``redis_cache`` is no longer a valid package name
 
 
 Version 3.8.4
@@ -174,13 +253,13 @@ Version 3.8.0
 - Now use redis native url notation for connection string (the own connection string
   notation is also supported but is marked as deprecated).
 - Now requires redis-py >= 2.10.0
-- Remove deprecated `raw_cache` property from backend.
+- Remove deprecated ``raw_cache`` property from backend.
 
 
 Version 3.7.2
 -------------
 
-- Add missing forward of version parameter from `add()` to `set()` function. (by @fellowshipofone)
+- Add missing forward of version parameter from ``add()`` to ``set()`` function. (by @fellowshipofone)
 
 Version 3.7.1
 -------------
@@ -192,9 +271,9 @@ Version 3.7.1
 Version 3.7.0
 -------------
 
-- Add support for django's `KEY_FUNCTION` and `REVERSE_KEY_FUNCTION` (by @teferi)
+- Add support for django's ``KEY_FUNCTION`` and ``REVERSE_KEY_FUNCTION`` (by @teferi)
 - Accept float value for socket timeout.
-- Fix wrong behavior of `DJANGO_REDIS_IGNORE_EXCEPTIONS` with socket timeouts.
+- Fix wrong behavior of ``DJANGO_REDIS_IGNORE_EXCEPTIONS`` with socket timeouts.
 - Backward incompatible change: now raises original exceptions instead of self defined.
 
 Version 3.6.2
@@ -231,8 +310,8 @@ Version 3.5.0
 
 - Removed: stats module (should be replaced with an other in future)
 - New: experimental client for add support to redis-sentinel.
-- Now uses a django DEFAULT_TIMEOUT constant instead of ``True``. Deprecation
-  warning added for code that now uses True (unlikely).
+- Now uses a django ``DEFAULT_TIMEOUT`` constant instead of ``True``.
+  Deprecation warning added for code that now uses ``True`` (unlikely).
 - Fix wrong forward of timeout on shard client.
 - Fix incr_version wrong behavior when using shard client (wrong client used for set new key).
 
@@ -298,7 +377,7 @@ Version 3.1.5
 Version 3.1.4
 -------------
 
-- Now reuse connection pool on massive use of `get_cache` method.
+- Now reuse connection pool on massive use of ``get_cache`` method.
 
 Version 3.1.3
 -------------

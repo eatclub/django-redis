@@ -1,7 +1,6 @@
-Django>=1.8
-fakeredis
+Django>=2.2
 flake8
-mock
-msgpack-python>=0.4.6
+isort
+msgpack>=0.6.0
 redis>=2.10.0
-wheel
+lz4>=0.15

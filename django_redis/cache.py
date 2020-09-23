@@ -5,21 +5,16 @@ from threading import RLock
 
 from django.conf import settings
 from django.core.cache.backends.base import BaseCache
+from django.utils.module_loading import import_string
 
 from .exceptions import ConnectionInterrupted
-from .util import load_class
 
-DJANGO_REDIS_IGNORE_EXCEPTIONS = getattr(settings, "DJANGO_REDIS_IGNORE_EXCEPTIONS", False)
-DJANGO_REDIS_LOG_IGNORED_EXCEPTIONS = getattr(settings, "DJANGO_REDIS_LOG_IGNORED_EXCEPTIONS", False)
-DJANGO_REDIS_LOGGER = getattr(settings, "DJANGO_REDIS_LOGGER", False)
 DJANGO_REDIS_SCAN_ITERSIZE = getattr(settings, "DJANGO_REDIS_SCAN_ITERSIZE", 10)
 DJANGO_REDIS_EXCEPTION_THRESHOLD = getattr(settings, "DJANGO_REDIS_EXCEPTION_THRESHOLD", None)
 DJANGO_REDIS_EXCEPTION_THRESHOLD_TIME_WINDOW = getattr(settings, "DJANGO_REDIS_EXCEPTION_TIME_WINDOW", 1)
 DJANGO_REDIS_EXCEPTION_THRESHOLD_COOLDOWN = getattr(settings, "DJANGO_REDIS_EXCEPTION_THRESHOLD_COOLDOWN", 5)
 
-
-if DJANGO_REDIS_LOG_IGNORED_EXCEPTIONS:
-    logger = logging.getLogger((DJANGO_REDIS_LOGGER or __name__))
+CONNECTION_INTERRUPTED = object()
 
 
 def omit_exception(method=None, return_value=None):
@@ -35,8 +30,8 @@ def omit_exception(method=None, return_value=None):
     def _decorator(self, *args, **kwargs):
         try:
             if self._exception_threshold and self._exception_threshold_hit():
-                if DJANGO_REDIS_LOG_IGNORED_EXCEPTIONS:
-                    logger.error("Django Redis exception threshold reached! Skipping cache call.")
+                if self._log_ignored_exceptions:
+                    self.logger.error("Django Redis exception threshold reached! Skipping cache call.")
                     return return_value
 
             return method(self, *args, **kwargs)
@@ -44,27 +39,44 @@ def omit_exception(method=None, return_value=None):
             if self._exception_threshold:
                 self._incr_exception_counter()
             if self._ignore_exceptions:
-                if DJANGO_REDIS_LOG_IGNORED_EXCEPTIONS:
-                    logger.error(str(e))
+                if self._log_ignored_exceptions:
+                    self.logger.error(str(e))
 
                 return return_value
-            raise e.parent
+            raise e.__cause__
+
     return _decorator
 
 
 class RedisCache(BaseCache):
     def __init__(self, server, params):
-        super(RedisCache, self).__init__(params)
+        super().__init__(params)
         self._server = server
         self._params = params
 
         options = params.get("OPTIONS", {})
-        self._client_cls = options.get("CLIENT_CLASS", "django_redis.client.DefaultClient")
-        self._client_cls = load_class(self._client_cls)
+        self._client_cls = options.get(
+            "CLIENT_CLASS", "django_redis.client.DefaultClient"
+        )
+        self._client_cls = import_string(self._client_cls)
         self._client = None
 
-        self._ignore_exceptions = options.get("IGNORE_EXCEPTIONS", DJANGO_REDIS_IGNORE_EXCEPTIONS)
-        self._exception_threshold = options.get("EXCEPTION_THRESHOLD", DJANGO_REDIS_EXCEPTION_THRESHOLD)
+        self._ignore_exceptions = options.get(
+            "IGNORE_EXCEPTIONS",
+            getattr(settings, "DJANGO_REDIS_IGNORE_EXCEPTIONS", False),
+        )
+        self._log_ignored_exceptions = getattr(
+            settings, "DJANGO_REDIS_LOG_IGNORED_EXCEPTIONS", False
+        )
+        self.logger = (
+            logging.getLogger(getattr(settings, "DJANGO_REDIS_LOGGER", __name__))
+            if self._log_ignored_exceptions
+            else None
+        )
+
+        # The lines below are our custom exception threshold code
+        self._exception_threshold = options.get(
+            "EXCEPTION_THRESHOLD", DJANGO_REDIS_EXCEPTION_THRESHOLD)
         if self._exception_threshold is not None:
             self._exception_threshold = float(self._exception_threshold)
         self._exception_threshold_cooldown = float(options.get(
@@ -134,17 +146,15 @@ class RedisCache(BaseCache):
     def add(self, *args, **kwargs):
         return self.client.add(*args, **kwargs)
 
-    @omit_exception
     def get(self, key, default=None, version=None, client=None):
-        try:
-            return self.client.get(key, default=default, version=version,
-                                   client=client)
-        except ConnectionInterrupted as e:
-            if DJANGO_REDIS_IGNORE_EXCEPTIONS or self._ignore_exceptions:
-                if DJANGO_REDIS_LOG_IGNORED_EXCEPTIONS:
-                    logger.error(str(e))
-                return default
-            raise
+        value = self._get(key, default, version, client)
+        if value is CONNECTION_INTERRUPTED:
+            value = default
+        return value
+
+    @omit_exception(return_value=CONNECTION_INTERRUPTED)
+    def _get(self, key, default, version, client):
+        return self.client.get(key, default=default, version=version, client=client)
 
     @omit_exception
     def delete(self, *args, **kwargs):
@@ -152,7 +162,7 @@ class RedisCache(BaseCache):
 
     @omit_exception
     def delete_pattern(self, *args, **kwargs):
-        kwargs['itersize'] = kwargs.get('itersize', DJANGO_REDIS_SCAN_ITERSIZE)
+        kwargs["itersize"] = kwargs.get("itersize", DJANGO_REDIS_SCAN_ITERSIZE)
         return self.client.delete_pattern(*args, **kwargs)
 
     @omit_exception
@@ -210,3 +220,7 @@ class RedisCache(BaseCache):
     @omit_exception
     def close(self, **kwargs):
         self.client.close(**kwargs)
+
+    @omit_exception
+    def touch(self, *args, **kwargs):
+        return self.client.touch(*args, **kwargs)
